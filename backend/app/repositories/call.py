@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, func, case
 from sqlalchemy.dialects.postgresql import insert
 from app import models, schemas
-from typing import List
+from typing import List, Dict, Any
 from datetime import datetime as dta
 
 class CallRepository:
@@ -53,5 +53,46 @@ class CallRepository:
             query = query.filter(models.Call.start_time <= end_date)
             
         return query.count()
+
+    def get_kpis(
+        self, db: Session, *, 
+        start_date: dta | None = None, end_date: dta | None = None
+    ) -> Dict[str, Any]:
+        query = db.query(
+            func.count(models.Call.id).label("total_calls"),
+            func.sum(
+                case(
+                    (models.Call.status_code == 200, 1),
+                    else_=0
+                )
+            ).label("answered_calls"),
+            func.avg(
+                case(
+                    (models.Call.status_code == 200, models.Call.duration),
+                    else_=None
+                )
+            ).label("acd")        
+        )
+
+        if start_date:
+            query = query.filter(models.Call.start_time >= start_date)
+        if end_date:
+            query = query.filter(models.Call.start_time <= end_date)
+        
+        results = query.one()
+        
+        total_calls = results.total_calls or 0
+        answered_calls = results.answered_calls or 0
+        acd = results.acd or 0.0
+
+        asr = (answered_calls / total_calls * 100) if total_calls > 0 else 0.0
+
+        return {
+            "total_calls": total_calls,
+            "answered_calls": answered_calls,
+            "asr": round(asr, 2),
+            "acd": round(float(acd), 2)
+        }
+
 
 call_repo = CallRepository()
