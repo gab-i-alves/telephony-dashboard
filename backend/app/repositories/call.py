@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from sqlalchemy.dialects.postgresql import insert
 from app import models, schemas
 from typing import List
+from datetime import datetime as dta
 
 class CallRepository:
     def create_call(self, db: Session, *, call_in: schemas.CallCreate) -> models.Call:
@@ -25,5 +27,31 @@ class CallRepository:
         
         db.execute(query)
         db.commit()
+
+    def get_calls(
+        self, db: Session, *, skip: int = 0, limit: int = 100, 
+        start_date: dta | None = None, end_date: dta | None = None
+    ) -> List[models.Call]:
+        query = db.query(models.Call)
+
+        if start_date:
+            query = query.filter(models.Call.start_time >= start_date)
+        if end_date:
+            query = query.filter(models.Call.start_time <= end_date)
+
+        return query.order_by(desc(models.Call.start_time)).offset(skip).limit(limit).all()
+
+    def get_calls_count(
+        self, db: Session, *, 
+        start_date: dta | None = None, end_date: dta | None = None
+    ) -> int:
+        query = db.query(models.Call)
+
+        if start_date:
+            query = query.filter(models.Call.start_time >= start_date)
+        if end_date:
+            query = query.filter(models.Call.start_time <= end_date)
+            
+        return query.count()
 
 call_repo = CallRepository()
