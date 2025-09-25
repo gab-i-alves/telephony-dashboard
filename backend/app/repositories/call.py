@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
-from .. import models, schemas
+from app import models, schemas
 from typing import List
 
 class CallRepository:

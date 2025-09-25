@@ -10,7 +10,8 @@ from alembic import context
 
 sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '..')))
 
-from core.database import Base
+from app.core.database import Base
+from app.models import user, call
 
 from dotenv import load_dotenv
 load_dotenv()

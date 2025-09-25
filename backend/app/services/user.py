@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from .. import schemas, models
-from ..repositories.user import user_repo
-from core.security import get_password_hash
+from app import schemas, models
+from app.repositories.user import user_repo
+from app.core.security import get_password_hash
 from fastapi import HTTPException
 
 class UserService:
