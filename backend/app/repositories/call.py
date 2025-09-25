@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, func, case
+from sqlalchemy import desc, func, case, Date, cast
 from sqlalchemy.dialects.postgresql import insert
 from app import models, schemas
 from typing import List, Dict, Any
@@ -93,6 +93,24 @@ class CallRepository:
             "asr": round(asr, 2),
             "acd": round(float(acd), 2)
         }
+
+    def get_calls_by_hour(
+        self, db: Session, *, 
+        start_date: dta | None = None, end_date: dta | None = None
+    ) -> List[Dict[str, Any]]:
+        hour_series = func.date_trunc('hour', models.Call.start_time)
+
+        query = db.query(
+            hour_series.label('hour'),
+            func.count(models.Call.id).label('total_calls')
+        ).group_by('hour').order_by('hour')
+
+        if start_date:
+            query = query.filter(models.Call.start_time >= start_date)
+        if end_date:
+            query = query.filter(models.Call.start_time <= end_date)
+
+        return query.all()
 
 
 call_repo = CallRepository()

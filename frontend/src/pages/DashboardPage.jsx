@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import apiClient from "../services/api";
 import KpiCard from "../components/KpiCard";
-import CallsTable from "../components/CallsTable"; 
+import CallsTable from "../components/CallsTable";
 import Pagination from "../components/Pagination";
+import CallsChart from "../components/CallsChart";
 
 const DashboardPage = () => {
   const { user, logout } = useAuthStore();
@@ -20,6 +21,10 @@ const DashboardPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  const [chartData, setChartData] = useState([]);
+  const [chartLoading, setChartLoading] = useState(true);
+  const [chartError, setChartError] = useState(null);
+
   useEffect(() => {
     const fetchKpis = async () => {
       try {
@@ -33,6 +38,21 @@ const DashboardPage = () => {
       }
     };
     fetchKpis();
+  }, []);
+
+  useEffect(() => {
+    const fetchChartData = async () => {
+      try {
+        setChartLoading(true);
+        const response = await apiClient.get("/metrics/calls_by_hour");
+        setChartData(response.data);
+      } catch (err) {
+        setChartError("Não foi possível carregar os dados do gráfico.");
+      } finally {
+        setChartLoading(false);
+      }
+    };
+    fetchChartData();
   }, []);
 
   useEffect(() => {
@@ -100,9 +120,21 @@ const DashboardPage = () => {
           </button>
         </div>
       </nav>
+
       <main className="p-8">
         <h2 className="text-2xl mb-6">Métricas Gerais</h2>
         {renderKpiContent()}
+
+        <div className="mt-8">
+          <h2 className="text-2xl mb-6">Volume de Chamadas por Hora</h2>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <CallsChart
+              data={chartData}
+              isLoading={chartLoading}
+              error={chartError}
+            />
+          </div>
+        </div>
 
         <div className="mt-8">
           <h2 className="text-2xl mb-6">Detalhes das Chamadas</h2>
