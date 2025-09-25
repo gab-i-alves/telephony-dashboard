@@ -2,8 +2,9 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from jose import JWTError
+from jose import JWTError, jwt
 
+from app.core import config
 from app import schemas, models
 from app.core import security, config
 from app.core.database import get_db
@@ -47,8 +48,8 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = security.jwt.decode(
-            token, security.config.SECRET_KEY, algorithms=[security.config.ALGORITHM]
+        payload = jwt.decode(
+            token, config.SECRET_KEY, algorithms=[config.ALGORITHM]
         )
         email: str = payload.get("sub")
         if email is None:
