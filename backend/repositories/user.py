@@ -5,10 +5,10 @@ class UserRepository:
     def get_user_by_email(self, db: Session, *, email: str) -> models.User | None:
         return db.query(models.User).filter(models.User.email == email).first()
 
-    def create_user(self, db: Session, *, user_in: schemas.UserCreate) -> models.User:
+    def create_user(self, db: Session, *, email: str, hashed_password: str) -> models.User:
         db_user = models.User(
-            email=user_in.email,
-            hashed_password=f"fake_hashed_{user_in.password}" # placeholder
+            email=email,
+            hashed_password=hashed_password
         )
         db.add(db_user)
         db.commit()
