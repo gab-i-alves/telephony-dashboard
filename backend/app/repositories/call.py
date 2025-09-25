@@ -112,5 +112,19 @@ class CallRepository:
 
         return query.all()
 
+    def get_calls_by_day(
+        self, db: Session, *, 
+        start_date: dta | None = None, end_date: dta | None = None
+    ) -> List[Dict[str, Any]]:
+        day_series = func.date_trunc('day', models.Call.start_time)
+        query = db.query(
+            day_series.label('day'),
+            func.count(models.Call.id).label('total_calls')
+        ).group_by('day').order_by('day')
+        if start_date:
+            query = query.filter(models.Call.start_time >= start_date)
+        if end_date:
+            query = query.filter(models.Call.start_time <= end_date)
+        return query.all()
 
 call_repo = CallRepository()

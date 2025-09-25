@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const CallsChart = ({ data, isLoading, error }) => {
+const CallsChart = ({ data, isLoading, error, timeframe }) => {
   if (isLoading) {
     return (
       <p className="text-center text-gray-500">
@@ -30,13 +30,23 @@ const CallsChart = ({ data, isLoading, error }) => {
     );
   }
 
-  const formattedData = data.map((item) => ({
-    hour: new Date(item.hour).toLocaleTimeString("pt-PT", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    "Total de Chamadas": item.total_calls,
-  }));
+  const formattedData = data.map((item) => {
+    const date = new Date(item.hour);
+    const formattedTime =
+      timeframe === "hour"
+        ? date.toLocaleTimeString("pt-PT", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : date.toLocaleDateString("pt-PT", {
+            day: "2-digit",
+            month: "2-digit",
+          });
+    return {
+      hour: formattedTime,
+      "Total de Chamadas": item.total_calls,
+    };
+  });
 
   return (
     <div style={{ width: "100%", height: 300 }}>

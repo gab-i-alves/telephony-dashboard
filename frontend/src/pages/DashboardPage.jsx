@@ -25,6 +25,8 @@ const DashboardPage = () => {
   const [chartLoading, setChartLoading] = useState(true);
   const [chartError, setChartError] = useState(null);
 
+  const [timeframe, setTimeframe] = useState("hour");
+
   useEffect(() => {
     const fetchKpis = async () => {
       try {
@@ -42,9 +44,13 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const fetchChartData = async () => {
+      const endpoint =
+        timeframe === "hour"
+          ? "/metrics/calls_by_hour"
+          : "/metrics/calls_by_day";
       try {
         setChartLoading(true);
-        const response = await apiClient.get("/metrics/calls_by_hour");
+        const response = await apiClient.get(endpoint);
         setChartData(response.data);
       } catch (err) {
         setChartError("Não foi possível carregar os dados do gráfico.");
@@ -53,7 +59,7 @@ const DashboardPage = () => {
       }
     };
     fetchChartData();
-  }, []);
+  }, [timeframe]);
 
   useEffect(() => {
     const fetchCalls = async () => {
@@ -126,12 +132,37 @@ const DashboardPage = () => {
         {renderKpiContent()}
 
         <div className="mt-8">
-          <h2 className="text-2xl mb-6">Volume de Chamadas por Hora</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl">Volume de Chamadas</h2>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setTimeframe("hour")}
+                className={`px-3 py-1 rounded ${
+                  timeframe === "hour"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-700"
+                }`}
+              >
+                Por Hora
+              </button>
+              <button
+                onClick={() => setTimeframe("day")}
+                className={`px-3 py-1 rounded ${
+                  timeframe === "day"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-700"
+                }`}
+              >
+                Por Dia
+              </button>
+            </div>
+          </div>
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
             <CallsChart
               data={chartData}
               isLoading={chartLoading}
               error={chartError}
+              timeframe={timeframe}
             />
           </div>
         </div>

@@ -31,3 +31,13 @@ def read_calls_by_hour(
     end_date: datetime | None = None
 ):
     return call_repo.get_calls_by_hour(db, start_date=start_date, end_date=end_date)
+
+@router.get("/calls_by_day", response_model=List[schemas.CallsByHour])
+def read_calls_by_day(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+    start_date: datetime | None = None,
+    end_date: datetime | None = None
+):
+    results = call_repo.get_calls_by_day(db, start_date=start_date, end_date=end_date)
+    return [{"hour": r.day, "total_calls": r.total_calls} for r in results]
